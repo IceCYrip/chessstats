@@ -100,11 +100,11 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Grandmaster's Corner</title>
+        <title>{`Grandmaster's Corner`}</title>
       </Head>
       <div className={styles.wrapper}>
-        <h1>Welcome to Grandmaster's Corner</h1>
-        <h2>A one-stop solution for your favourite player's stats</h2>
+        <h1>{`Welcome to Grandmaster's Corner`}</h1>
+        <h2>{`A one-stop solution for your favourite player's stats`}</h2>
         <TextField
           id="playerName"
           label="Enter Player's Username"
