@@ -12,7 +12,14 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
-import { BarChart, OpenInNew, Search } from '@mui/icons-material'
+import {
+  BarChart,
+  GitHub,
+  LinkedIn,
+  OpenInNew,
+  Search,
+  Twitter,
+} from '@mui/icons-material'
 import axios from 'axios'
 import sweetAlert from 'sweetalert'
 
@@ -292,10 +299,12 @@ export default function Home() {
         <DataGrid
           autoHeight
           sx={{
+            marginBottom: '5vh',
+
             minWidth: 360,
             width: '60vw',
             maxWidth: 730,
-            // width: '50vw',
+
             backgroundColor: '#c6ac8f',
             color: '#0a0908',
 
@@ -313,6 +322,36 @@ export default function Home() {
           disableSelectionOnClick
           experimentalFeatures={{ newEditingApi: true }}
         />
+
+        <div className={styles.footer}>
+          <h3> Developed by Karan Sable</h3>
+          <div className={styles.iconDiv}>
+            <IconButton
+              onClick={() => {
+                window.open('https://www.twitter.com/IceCYrip', '_blank')
+              }}
+            >
+              <Twitter className={styles.twitterIcon} />
+            </IconButton>
+            <IconButton
+              onClick={() => {
+                window.open('https://github.com/IceCYrip', '_blank')
+              }}
+            >
+              <GitHub className={styles.githubIcon} />
+            </IconButton>
+            <IconButton
+              onClick={() => {
+                window.open(
+                  'https://www.linkedin.com/in/karan-sable-581641167/',
+                  '_blank'
+                )
+              }}
+            >
+              <LinkedIn className={styles.linkedInIcon} />
+            </IconButton>
+          </div>
+        </div>
       </div>
     </>
   )
