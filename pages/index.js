@@ -10,92 +10,183 @@ import {
   // Select,
   TextField,
 } from '@mui/material'
-import React, { useState } from 'react'
-import { Search } from '@mui/icons-material'
+import { DataGrid } from '@mui/x-data-grid'
+import React, { useEffect, useState } from 'react'
+import { BarChart, OpenInNew, Search } from '@mui/icons-material'
 import axios from 'axios'
 import sweetAlert from 'sweetalert'
 
 export default function Home() {
   const [playerProfile, setPlayerProfile] = useState()
+  const [leaderBoard, setLeaderBoard] = useState([])
+
+  useEffect(() => {
+    //Get Leaderboard
+
+    axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
+      console.log(res.data.daily)
+      setLeaderBoard(
+        res.data.daily.map((obj, index) => ({
+          id: index,
+          rank: obj.rank,
+          avatar: obj.avatar,
+          username: obj.username,
+          url: obj.url,
+          score: obj.score,
+        }))
+      )
+    })
+  }, [])
 
   const getPlayerData = () => {
     const playerName = document.getElementById('playerName').value
 
-    axios
-      .get(`https://api.chess.com/pub/player/${playerName}`)
-      .then((res) => {
-        console.log('data: ', res.data)
-        const { country, ...rest } = res.data
-        // setPlayerProfile({ ...rest })
+    if (playerName === '') {
+      sweetAlert({
+        title: 'Warning',
+        text: 'Please enter a username',
+        icon: 'warning',
+        buttons: {
+          confirm: {
+            text: 'OK',
+            visible: true,
+            closeModal: true,
+          },
+        },
+      })
+    } else {
+      axios
+        .get(`https://api.chess.com/pub/player/${playerName}`)
+        .then((res) => {
+          console.log('data: ', res.data)
+          const { country, ...rest } = res.data
+          // setPlayerProfile({ ...rest })
 
-        axios
-          .get(`${res.data.country}`)
-          .then((countryRes) => {
-            console.log(countryRes.data.name)
-            setPlayerProfile({ ...rest, country: countryRes.data.name })
-          })
-          .catch((error) => {
-            if (error.response.status === 404) {
-              sweetAlert({
-                title: 'Sorry',
-                text: 'User Not Found',
-                icon: 'info',
-                buttons: {
-                  confirm: {
-                    text: 'OK',
-                    visible: true,
-                    closeModal: true,
+          axios
+            .get(`${res.data.country}`)
+            .then((countryRes) => {
+              console.log(countryRes.data.name)
+              setPlayerProfile({ ...rest, country: countryRes.data.name })
+            })
+            .catch((error) => {
+              if (error.response.status === 404) {
+                sweetAlert({
+                  title: 'Sorry',
+                  text: 'User Not Found',
+                  icon: 'info',
+                  buttons: {
+                    confirm: {
+                      text: 'OK',
+                      visible: true,
+                      closeModal: true,
+                    },
                   },
-                },
-              })
-            } else {
-              sweetAlert({
-                title: 'ERROR!',
-                text: ``,
-                icon: 'error',
-                buttons: {
-                  confirm: {
-                    text: 'OK',
-                    visible: true,
-                    closeModal: true,
+                })
+              } else {
+                sweetAlert({
+                  title: 'ERROR!',
+                  text: ``,
+                  icon: 'error',
+                  buttons: {
+                    confirm: {
+                      text: 'OK',
+                      visible: true,
+                      closeModal: true,
+                    },
                   },
+                  dangerMode: true,
+                })
+              }
+            })
+        })
+        .catch((error) => {
+          if (error.response.status === 404) {
+            sweetAlert({
+              title: 'Sorry',
+              text: 'User Not Found',
+              icon: 'info',
+              buttons: {
+                confirm: {
+                  text: 'OK',
+                  visible: true,
+                  closeModal: true,
                 },
-                dangerMode: true,
-              })
-            }
-          })
-      })
-      .catch((error) => {
-        if (error.response.status === 404) {
-          sweetAlert({
-            title: 'Sorry',
-            text: 'User Not Found',
-            icon: 'info',
-            buttons: {
-              confirm: {
-                text: 'OK',
-                visible: true,
-                closeModal: true,
               },
-            },
-          })
-        } else {
-          sweetAlert({
-            title: 'ERROR!',
-            text: ``,
-            icon: 'error',
-            buttons: {
-              confirm: {
-                text: 'OK',
-                visible: true,
-                closeModal: true,
+            })
+          } else {
+            sweetAlert({
+              title: 'ERROR!',
+              text: ``,
+              icon: 'error',
+              buttons: {
+                confirm: {
+                  text: 'OK',
+                  visible: true,
+                  closeModal: true,
+                },
               },
-            },
-            dangerMode: true,
-          })
-        }
-      })
+              dangerMode: true,
+            })
+          }
+        })
+    }
   }
+
+  const columns = [
+    {
+      headerClassName: 'cellColor',
+
+      field: 'rank',
+      align: 'center',
+      headerAlign: 'center',
+      headerName: 'Rank',
+      flex: 0.3,
+    },
+    {
+      headerClassName: 'cellColor',
+
+      field: 'username',
+      headerAlign: 'center',
+      headerName: 'Username',
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div
+            style={{ display: 'flex', columnGap: '20px', alignItems: 'center' }}
+          >
+            <Image
+              className={styles.avatar}
+              src={leaderBoard[params.row.rank - 1]['avatar']}
+              height={45}
+              width={45}
+            />
+            <div>
+              <span style={{ fontWeight: 'bold' }}>{params.row.username}</span>
+              <IconButton
+                onClick={() => {
+                  window.open(
+                    `${leaderBoard[params.row.rank - 1]['url']}`,
+                    '_blank'
+                  )
+                }}
+              >
+                <OpenInNew sx={{ color: '#0a0908', height: 20 }} />
+              </IconButton>
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      headerClassName: 'cellColor',
+
+      field: 'score',
+      align: 'center',
+      headerAlign: 'center',
+      headerName: 'Score',
+      flex: 0.4,
+    },
+  ]
 
   return (
     <>
@@ -103,8 +194,8 @@ export default function Home() {
         <title>{`Grandmaster's Corner`}</title>
       </Head>
       <div className={styles.wrapper}>
-        <h1>{`Welcome to Grandmaster's Corner`}</h1>
-        <h2>{`A one-stop solution for your favourite player's stats`}</h2>
+        <h1>{`Grandmaster's Corner`}</h1>
+        <h2>{`Your favourite player's all stats at one place`}</h2>
         <TextField
           id="playerName"
           label="Enter Player's Username"
@@ -138,16 +229,16 @@ export default function Home() {
                 <Image
                   className={styles.avatar}
                   src={playerProfile.avatar}
-                  height={175}
-                  width={175}
+                  height={150}
+                  width={150}
                   alt="avatar"
                 />
               ) : (
                 <Image
                   className={styles.avatar}
                   src="/noImageFound.png"
-                  height={175}
-                  width={175}
+                  height={150}
+                  width={150}
                   alt="No Image Found"
                 />
               )}
@@ -183,6 +274,45 @@ export default function Home() {
             </div>
           </div>
         )}
+        <label
+          style={{
+            marginTop: '8vh',
+            marginBottom: '2vh',
+            fontSize: '20px',
+            textTransform: 'uppercase',
+            fontFamily: 'Lato',
+            fontWeight: 'bold',
+
+            display: 'flex',
+          }}
+        >
+          Leaderboard
+          <BarChart sx={{ width: 40 }} />
+        </label>
+        <DataGrid
+          autoHeight
+          sx={{
+            minWidth: 360,
+            width: '60vw',
+            maxWidth: 730,
+            // width: '50vw',
+            backgroundColor: '#c6ac8f',
+            color: '#0a0908',
+
+            '& .cellColor': {
+              backgroundColor: '#5e503f',
+              color: 'white',
+            },
+          }}
+          rows={leaderBoard}
+          //@ts-ignore
+          columns={columns}
+          pageSize={10}
+          // rowsPerPageOptions={[5]}
+          hideFooter
+          disableSelectionOnClick
+          experimentalFeatures={{ newEditingApi: true }}
+        />
       </div>
     </>
   )
