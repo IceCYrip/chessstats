@@ -4,10 +4,10 @@ import styles from '../styles/Home.module.css'
 import {
   IconButton,
   InputAdornment,
-  // FormControl,
-  // InputLabel,
-  // MenuItem,
-  // Select,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
@@ -25,15 +25,35 @@ import sweetAlert from 'sweetalert'
 
 export default function Home() {
   const [playerProfile, setPlayerProfile] = useState()
+  const gameMode = [
+    { code: 'daily', name: 'Daily' },
+    { code: 'daily960', name: 'Daily 960' },
+    { code: 'live_rapid', name: 'Rapid' },
+    { code: 'live_blitz', name: 'Blitz' },
+    { code: 'live_bullet', name: 'Bullet' },
+    { code: 'live_bughouse', name: 'Doubles Bughouse' },
+    { code: 'live_blitz960', name: 'Blitz 960' },
+    { code: 'live_threecheck', name: '3 Check' },
+    { code: 'live_crazyhouse', name: 'Crazy House' },
+    { code: 'live_kingofthehill', name: 'King of the Hill' },
+    { code: 'tactics', name: 'Tactics' },
+    { code: 'rush', name: 'Puzzle Rush' },
+    { code: 'battle', name: 'Puzzle Battle' },
+  ]
   const [leaderBoard, setLeaderBoard] = useState([])
 
   useEffect(() => {
-    //Get Leaderboard
+    //Get Game Modes for Leaderboard
+    // axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
+    //   setGameMode(Object.keys(res.data))
+    // })
 
+    //Get Leaderboard
     axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
-      console.log(res.data.daily)
+      let firstKey = Object.keys(res.data)[0]
+
       setLeaderBoard(
-        res.data.daily.map((obj, index) => ({
+        res.data[firstKey].map((obj, index) => ({
           id: index,
           rank: obj.rank,
           avatar: obj.avatar,
@@ -45,13 +65,29 @@ export default function Home() {
     })
   }, [])
 
+  const getLeaderBoardData = (modeName) => {
+    //Get Particular Leaderboard
+    axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
+      setLeaderBoard(
+        res.data[modeName].map((obj, index) => ({
+          id: index,
+          rank: obj.rank,
+          avatar: obj.avatar,
+          username: obj.username,
+          url: obj.url,
+          score: obj.score,
+        }))
+      )
+    })
+  }
+
   const getPlayerData = () => {
     const playerName = document.getElementById('playerName').value
 
-    if (playerName === '') {
+    if (playerName === '' || playerName.includes(' ')) {
       sweetAlert({
         title: 'Warning',
-        text: 'Please enter a username',
+        text: 'Please enter a valid username',
         icon: 'warning',
         buttons: {
           confirm: {
@@ -76,7 +112,7 @@ export default function Home() {
               setPlayerProfile({ ...rest, country: countryRes.data.name })
             })
             .catch((error) => {
-              if (error.response.status === 404) {
+              if (error?.response?.status === 404) {
                 sweetAlert({
                   title: 'Sorry',
                   text: 'User Not Found',
@@ -107,7 +143,7 @@ export default function Home() {
             })
         })
         .catch((error) => {
-          if (error.response.status === 404) {
+          if (error?.response?.status === 404) {
             sweetAlert({
               title: 'Sorry',
               text: 'User Not Found',
@@ -123,7 +159,7 @@ export default function Home() {
           } else {
             sweetAlert({
               title: 'ERROR!',
-              text: ``,
+              text: `error`,
               icon: 'error',
               buttons: {
                 confirm: {
@@ -163,22 +199,27 @@ export default function Home() {
           >
             <Image
               className={styles.avatar}
-              src={leaderBoard[params.row.rank - 1]['avatar']}
+              src={
+                leaderBoard[params.row.rank - 1]['avatar'] ??
+                'https://www.chess.com/bundles/web/images/noavatar_l.84a92436@2x.gif'
+              }
               height={45}
               width={45}
             />
             <div>
               <span style={{ fontWeight: 'bold' }}>{params.row.username}</span>
-              <IconButton
-                onClick={() => {
-                  window.open(
-                    `${leaderBoard[params.row.rank - 1]['url']}`,
-                    '_blank'
-                  )
-                }}
-              >
-                <OpenInNew sx={{ color: '#0a0908', height: 20 }} />
-              </IconButton>
+              {leaderBoard[params.row.rank - 1]['url'] && (
+                <IconButton
+                  onClick={() => {
+                    window.open(
+                      `${leaderBoard[params.row.rank - 1]['url']}`,
+                      '_blank'
+                    )
+                  }}
+                >
+                  <OpenInNew sx={{ color: '#0a0908', height: 20 }} />
+                </IconButton>
+              )}
             </div>
           </div>
         )
@@ -232,23 +273,17 @@ export default function Home() {
           <div className={styles.contentContainer}>
             <h2>Player Profile</h2>
             <div className={styles.playerData}>
-              {playerProfile.avatar ? (
-                <Image
-                  className={styles.avatar}
-                  src={playerProfile.avatar}
-                  height={150}
-                  width={150}
-                  alt="avatar"
-                />
-              ) : (
-                <Image
-                  className={styles.avatar}
-                  src="/noImageFound.png"
-                  height={150}
-                  width={150}
-                  alt="No Image Found"
-                />
-              )}
+              <Image
+                className={styles.avatar}
+                src={
+                  playerProfile.avatar ??
+                  'https://www.chess.com/bundles/web/images/noavatar_l.84a92436@2x.gif'
+                }
+                height={150}
+                width={150}
+                alt="avatar"
+              />
+
               <div className={styles.right}>
                 <label className={styles.verifiedName}>
                   Name: <span>{playerProfile.name ?? 'No name found'}</span>{' '}
@@ -283,7 +318,7 @@ export default function Home() {
         )}
         <label
           style={{
-            marginTop: '8vh',
+            marginTop: '10vh',
             marginBottom: '2vh',
             fontSize: '20px',
             textTransform: 'uppercase',
@@ -296,32 +331,58 @@ export default function Home() {
           Leaderboard
           <BarChart sx={{ width: 40 }} />
         </label>
-        <DataGrid
-          autoHeight
-          sx={{
-            marginBottom: '5vh',
+        <div className={styles.leaderBoard}>
+          <FormControl
+            className={styles.modeSelect}
+            variant="standard"
+            sx={{
+              width: '150px',
+            }}
+          >
+            <InputLabel id="demo-simple-select-standard-label">
+              Select a game mode
+            </InputLabel>
+            <Select
+              defaultValue={gameMode[0]['code']}
+              onChange={(e) => {
+                getLeaderBoardData(e.target.value)
+              }}
+            >
+              {gameMode &&
+                gameMode.map((mode) => {
+                  return <MenuItem value={mode.code}>{mode.name}</MenuItem>
+                })}
+            </Select>
+          </FormControl>
 
-            minWidth: 360,
-            width: '60vw',
-            maxWidth: 730,
+          <DataGrid
+            autoHeight
+            sx={{
+              marginBottom: '5vh',
 
-            backgroundColor: '#c6ac8f',
-            color: '#0a0908',
+              minWidth: 360,
+              // width: '60vw',
+              width: '100%',
+              // maxWidth: 730,
 
-            '& .cellColor': {
-              backgroundColor: '#5e503f',
-              color: 'white',
-            },
-          }}
-          rows={leaderBoard}
-          //@ts-ignore
-          columns={columns}
-          pageSize={10}
-          // rowsPerPageOptions={[5]}
-          hideFooter
-          disableSelectionOnClick
-          experimentalFeatures={{ newEditingApi: true }}
-        />
+              backgroundColor: '#c6ac8f',
+              color: '#0a0908',
+
+              '& .cellColor': {
+                backgroundColor: '#5e503f',
+                color: 'white',
+              },
+            }}
+            rows={leaderBoard}
+            //@ts-ignore
+            columns={columns}
+            pageSize={10}
+            // rowsPerPageOptions={[5]}
+            hideFooter
+            disableSelectionOnClick
+            experimentalFeatures={{ newEditingApi: true }}
+          />
+        </div>
 
         <div className={styles.footer}>
           <h3> Developed by Karan Sable</h3>

@@ -116,6 +116,16 @@
     column-gap: 5px;
   }
 
+  .leaderBoard {
+    margin-top: 2vh;
+    width: 60vw;
+
+    display: flex;
+    flex-direction: column;
+    row-gap: 2vh;
+    align-items: center;
+  }
+
   .footer {
     font-size: 0.8em;
   }
@@ -187,6 +197,20 @@
     display: flex;
     align-items: center;
     column-gap: 5px;
+  }
+
+  .leaderBoard {
+    margin-top: 2vh;
+    width: 60vw;
+
+    display: flex;
+    flex-direction: column;
+    row-gap: 2vh;
+    align-items: center;
+  }
+
+  #modeSelect {
+    width: 70% !important;
   }
 
   .footer {
