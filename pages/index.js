@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+
 import {
   IconButton,
   InputAdornment,
@@ -41,13 +42,10 @@ export default function Home() {
     { code: 'battle', name: 'Puzzle Battle' },
   ]
   const [leaderBoard, setLeaderBoard] = useState([])
+  const [playerSearchLoading, setPlayerSearchLoading] = useState(false)
+  const [gameModeLoading, setGameModeLoading] = useState(true)
 
   useEffect(() => {
-    //Get Game Modes for Leaderboard
-    // axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
-    //   setGameMode(Object.keys(res.data))
-    // })
-
     //Get Leaderboard
     axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
       let firstKey = Object.keys(res.data)[0]
@@ -62,10 +60,12 @@ export default function Home() {
           score: obj.score,
         }))
       )
+      setGameModeLoading(false)
     })
   }, [])
 
   const getLeaderBoardData = (modeName) => {
+    setGameModeLoading(true)
     //Get Particular Leaderboard
     axios.get(`https://api.chess.com/pub/leaderboards`).then((res) => {
       setLeaderBoard(
@@ -78,10 +78,12 @@ export default function Home() {
           score: obj.score,
         }))
       )
+      setGameModeLoading(false)
     })
   }
 
   const getPlayerData = () => {
+    setPlayerSearchLoading(true)
     const playerName = document.getElementById('playerName').value
 
     if (playerName === '' || playerName.includes(' ')) {
@@ -103,13 +105,13 @@ export default function Home() {
         .then((res) => {
           console.log('data: ', res.data)
           const { country, ...rest } = res.data
-          // setPlayerProfile({ ...rest })
 
           axios
             .get(`${res.data.country}`)
             .then((countryRes) => {
               console.log(countryRes.data.name)
               setPlayerProfile({ ...rest, country: countryRes.data.name })
+              setPlayerSearchLoading(false)
             })
             .catch((error) => {
               if (error?.response?.status === 404) {
@@ -244,31 +246,38 @@ export default function Home() {
       <div className={styles.wrapper}>
         <h1>{`Grandmaster's Corner`}</h1>
         <h2>{`Your favourite player's all stats at one place`}</h2>
-        <TextField
-          id="playerName"
-          label="Enter Player's Username"
-          variant="standard"
-          sx={{
-            minWidth: 200,
-            width: '60vw',
-            maxWidth: 730,
+        <div
+          className={styles.containsLoader}
+          style={{
             marginTop: '5vh',
           }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  sx={{ color: '#0a0908' }}
-                  onClick={() => {
-                    getPlayerData()
-                  }}
-                >
-                  <Search />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+        >
+          <TextField
+            id="playerName"
+            label="Enter Player's Username"
+            variant="standard"
+            sx={{
+              minWidth: 200,
+              width: '60vw',
+              maxWidth: 730,
+            }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    sx={{ color: '#0a0908' }}
+                    onClick={() => {
+                      getPlayerData()
+                    }}
+                  >
+                    <Search />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          {playerSearchLoading && <div className={styles.loader}></div>}
+        </div>
         {playerProfile && (
           <div className={styles.contentContainer}>
             <h2>Player Profile</h2>
@@ -332,33 +341,35 @@ export default function Home() {
           <BarChart sx={{ width: 40 }} />
         </label>
         <div className={styles.leaderBoard}>
-          <FormControl
-            className={styles.modeSelect}
-            variant="standard"
-            sx={{
-              width: '150px',
-            }}
-          >
-            <InputLabel id="demo-simple-select-standard-label">
-              Select a game mode
-            </InputLabel>
-            <Select
-              defaultValue={gameMode[0]['code']}
-              onChange={(e) => {
-                getLeaderBoardData(e.target.value)
+          <div className={styles.containsLoader}>
+            <FormControl
+              className={styles.modeSelect}
+              variant="standard"
+              sx={{
+                width: '150px',
               }}
             >
-              {gameMode &&
-                gameMode.map((mode, index) => {
-                  return (
-                    <MenuItem key={index} value={mode.code}>
-                      {mode.name}
-                    </MenuItem>
-                  )
-                })}
-            </Select>
-          </FormControl>
-
+              <InputLabel id="demo-simple-select-standard-label">
+                Select a game mode
+              </InputLabel>
+              <Select
+                defaultValue={gameMode[0]['code']}
+                onChange={(e) => {
+                  getLeaderBoardData(e.target.value)
+                }}
+              >
+                {gameMode &&
+                  gameMode.map((mode, index) => {
+                    return (
+                      <MenuItem key={index} value={mode.code}>
+                        {mode.name}
+                      </MenuItem>
+                    )
+                  })}
+              </Select>
+            </FormControl>
+            {gameModeLoading && <div className={styles.loader}></div>}
+          </div>
           <DataGrid
             autoHeight
             sx={{

@@ -58,6 +58,32 @@
   color: #0072b1;
 }
 
+.loader {
+  margin-top: 18px;
+  border-radius: 50%;
+  border: 2px solid #0a0908;
+  border-left-color: transparent;
+  width: 15px;
+  height: 15px;
+  animation: spin89345 1s linear infinite;
+}
+
+.containsLoader {
+  display: flex;
+  column-gap: 20px;
+  align-items: center;
+}
+
+@keyframes spin89345 {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @media only screen and (min-width: 1100px) {
   .wrapper > h1 {
     color: #0a0908;
