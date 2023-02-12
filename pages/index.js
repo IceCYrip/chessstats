@@ -349,8 +349,12 @@ export default function Home() {
               }}
             >
               {gameMode &&
-                gameMode.map((mode) => {
-                  return <MenuItem value={mode.code}>{mode.name}</MenuItem>
+                gameMode.map((mode, index) => {
+                  return (
+                    <MenuItem key={index} value={mode.code}>
+                      {mode.name}
+                    </MenuItem>
+                  )
                 })}
             </Select>
           </FormControl>
